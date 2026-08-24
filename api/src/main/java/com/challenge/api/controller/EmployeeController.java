@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 /**
- * Fill in the missing aspects of this Spring Web REST Controller. Don't forget to add a Service layer.
+ * HTTP entry point for employee operations.
+ *
+ * <p>I kept the controller focused on web concerns such as routes and status codes. The service owns the employee
+ * rules so they are not tied to Spring MVC and can be tested separately.
  */
 @RestController
 @RequestMapping("/api/v1/employee")
@@ -24,6 +27,7 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
 
+    // Constructor injection makes the controller's dependency explicit and easy to replace in tests.
     public EmployeeController(EmployeeService employeeService) {
         this.employeeService = employeeService;
     }
@@ -34,6 +38,7 @@ public class EmployeeController {
      */
     @GetMapping
     public List<Employee> getAllEmployees() {
+        // The service returns a snapshot rather than exposing its internal collection.
         return employeeService.getAllEmployees();
     }
 
@@ -44,6 +49,7 @@ public class EmployeeController {
      */
     @GetMapping("/{uuid}")
     public Employee getEmployeeByUuid(@PathVariable UUID uuid) {
+        // Optional is converted into the HTTP response expected by an API consumer.
         return employeeService
                 .getEmployeeByUuid(uuid)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
@@ -60,6 +66,7 @@ public class EmployeeController {
         try {
             return employeeService.createEmployee(requestBody);
         } catch (IllegalArgumentException exception) {
+            // Invalid domain input should be reported as a client error, not a server failure.
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
         }
     }

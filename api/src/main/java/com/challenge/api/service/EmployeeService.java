@@ -15,15 +15,19 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmployeeService {
 
+    // This is intentionally a small boundary check, not an attempt to reproduce the full email specification.
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 
+    // A concurrent map is enough for this no-database challenge and remains safe across simultaneous web requests.
     private final Map<UUID, Employee> employees = new ConcurrentHashMap<>();
 
     public List<Employee> getAllEmployees() {
+        // List.copyOf prevents callers from adding to or removing from the service's internal state.
         return List.copyOf(employees.values());
     }
 
     public Optional<Employee> getEmployeeByUuid(UUID uuid) {
+        // Optional makes the not-found case explicit for the controller.
         return Optional.ofNullable(employees.get(uuid));
     }
 
@@ -31,13 +35,20 @@ public class EmployeeService {
         if (request == null) {
             throw new IllegalArgumentException("Request body is required");
         }
+
+        // Hire date is system-managed when the caller does not provide one.
         Instant hireDate = request.contractHireDate() == null ? Instant.now() : request.contractHireDate();
         validate(request, hireDate);
 
+        // Build the stored model only after the complete request has passed validation.
         EmployeeModel employee = new EmployeeModel();
         employee.setUuid(UUID.randomUUID());
+
+        // Trimming at the boundary keeps stored names, titles, and email addresses consistent.
         employee.setFirstName(request.firstName().trim());
         employee.setLastName(request.lastName().trim());
+
+        // Full name is derived here so clients cannot send a value that disagrees with the first and last names.
         employee.setFullName(employee.getFirstName() + " " + employee.getLastName());
         employee.setSalary(request.salary());
         employee.setAge(request.age());
@@ -45,10 +56,13 @@ public class EmployeeService {
         employee.setEmail(request.email().trim());
         employee.setContractHireDate(hireDate);
         employee.setContractTerminationDate(request.contractTerminationDate());
+
+        // Saving last ensures a partially constructed employee is never visible to another request.
         employees.put(employee.getUuid(), employee);
         return employee;
     }
 
+    /** Checks the small set of business rules needed before an employee can be created. */
     private void validate(EmployeeRequest request, Instant hireDate) {
         requireText(request.firstName(), "firstName");
         requireText(request.lastName(), "lastName");
@@ -69,6 +83,7 @@ public class EmployeeService {
         }
     }
 
+    // Required text fields must contain at least one non-whitespace character.
     private void requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " is required");

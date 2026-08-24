@@ -22,9 +22,11 @@ import org.springframework.test.web.servlet.MockMvc;
 @WebMvcTest(EmployeeController.class)
 class EmployeeControllerTest {
 
+    // MockMvc calls the controller like an HTTP client without starting a real server.
     @Autowired
     private MockMvc mockMvc;
 
+    // The service is mocked here because this test class focuses only on controller behavior.
     @MockBean
     private EmployeeService employeeService;
 
@@ -98,6 +100,7 @@ class EmployeeControllerTest {
     }
 
     private EmployeeModel employee() {
+        // A shared fixture keeps each controller test focused on the behavior it is checking.
         EmployeeModel employee = new EmployeeModel();
         employee.setUuid(UUID.randomUUID());
         employee.setFirstName("Ada");
