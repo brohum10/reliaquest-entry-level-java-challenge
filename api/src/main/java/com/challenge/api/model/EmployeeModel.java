@@ -3,15 +3,9 @@ package com.challenge.api.model;
 import java.time.Instant;
 import java.util.UUID;
 
-/**
- * Concrete employee model used by this implementation.
- *
- * <p>{@code implements Employee} means this class fulfills the interface supplied with the challenge. It does not
- * extend a parent class.
- */
+/** Concrete implementation of the Employee contract supplied with the challenge. */
 public class EmployeeModel implements Employee {
 
-    // The service generates this identifier when an employee is created.
     private UUID uuid;
     private String firstName;
     private String lastName;
@@ -22,7 +16,6 @@ public class EmployeeModel implements Employee {
     private String email;
     private Instant contractHireDate;
 
-    // Null represents an employee whose contract is still active.
     private Instant contractTerminationDate;
 
     @Override

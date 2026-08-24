@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 class EmployeeServiceTest {
 
-    // Each test instance gets an empty in-memory service, so tests do not share employees.
     private final EmployeeService employeeService = new EmployeeService();
 
     @Test
@@ -22,7 +21,6 @@ class EmployeeServiceTest {
 
         Employee created = employeeService.createEmployee(request);
 
-        // Creation should generate system-managed fields and make the employee retrievable.
         assertNotNull(created.getUuid());
         assertEquals("Ada Lovelace", created.getFullName());
         assertEquals(
@@ -37,7 +35,6 @@ class EmployeeServiceTest {
 
         Employee created = employeeService.createEmployee(request);
 
-        // The API permits an omitted hire date, but the stored model should always have one.
         assertNotNull(created.getContractHireDate());
     }
 
@@ -48,7 +45,6 @@ class EmployeeServiceTest {
         IllegalArgumentException exception =
                 assertThrows(IllegalArgumentException.class, () -> employeeService.createEmployee(request));
 
-        // A rejected request must not leave partial data in the store.
         assertEquals("firstName is required", exception.getMessage());
         assertTrue(employeeService.getAllEmployees().isEmpty());
     }

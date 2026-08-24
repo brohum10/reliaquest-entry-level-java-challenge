@@ -27,7 +27,6 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-    // Constructor injection makes the controller's dependency explicit and easy to replace in tests.
     public EmployeeController(EmployeeService employeeService) {
         this.employeeService = employeeService;
     }
@@ -38,7 +37,6 @@ public class EmployeeController {
      */
     @GetMapping
     public List<Employee> getAllEmployees() {
-        // The service returns a snapshot rather than exposing its internal collection.
         return employeeService.getAllEmployees();
     }
 
@@ -49,7 +47,6 @@ public class EmployeeController {
      */
     @GetMapping("/{uuid}")
     public Employee getEmployeeByUuid(@PathVariable UUID uuid) {
-        // Optional is converted into the HTTP response expected by an API consumer.
         return employeeService
                 .getEmployeeByUuid(uuid)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));

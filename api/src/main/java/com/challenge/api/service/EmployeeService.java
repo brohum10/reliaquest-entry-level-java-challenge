@@ -12,6 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
+/**
+ * Owns employee creation and lookup rules. Storage is intentionally in memory because persistence is outside the
+ * scope of the challenge.
+ */
 @Service
 public class EmployeeService {
 
@@ -22,12 +26,11 @@ public class EmployeeService {
     private final Map<UUID, Employee> employees = new ConcurrentHashMap<>();
 
     public List<Employee> getAllEmployees() {
-        // List.copyOf prevents callers from adding to or removing from the service's internal state.
+        // Return a snapshot so callers cannot modify the service's internal collection.
         return List.copyOf(employees.values());
     }
 
     public Optional<Employee> getEmployeeByUuid(UUID uuid) {
-        // Optional makes the not-found case explicit for the controller.
         return Optional.ofNullable(employees.get(uuid));
     }
 
@@ -40,11 +43,10 @@ public class EmployeeService {
         Instant hireDate = request.contractHireDate() == null ? Instant.now() : request.contractHireDate();
         validate(request, hireDate);
 
-        // Build the stored model only after the complete request has passed validation.
         EmployeeModel employee = new EmployeeModel();
         employee.setUuid(UUID.randomUUID());
 
-        // Trimming at the boundary keeps stored names, titles, and email addresses consistent.
+        // Normalize text at the API boundary so stored values stay consistent.
         employee.setFirstName(request.firstName().trim());
         employee.setLastName(request.lastName().trim());
 
@@ -62,7 +64,6 @@ public class EmployeeService {
         return employee;
     }
 
-    /** Checks the small set of business rules needed before an employee can be created. */
     private void validate(EmployeeRequest request, Instant hireDate) {
         requireText(request.firstName(), "firstName");
         requireText(request.lastName(), "lastName");
@@ -83,7 +84,6 @@ public class EmployeeService {
         }
     }
 
-    // Required text fields must contain at least one non-whitespace character.
     private void requireText(String value, String fieldName) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " is required");
