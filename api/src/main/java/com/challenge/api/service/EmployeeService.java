@@ -12,11 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
-//this owns employee creation and lookup rules
+// this owns employee creation and lookup rules
 // storage is intentionally in memory because persistence is outside the scope of the challenge
 
 @Service
-    
 public class EmployeeService {
 
     // small boundary check.
@@ -25,7 +24,7 @@ public class EmployeeService {
     private final Map<UUID, Employee> employees = new ConcurrentHashMap<>();
 
     public List<Employee> getAllEmployees() {
-        // returns snapshot of callers ..
+        // returns a snapshot so callers cannot modify the stored employee list
         return List.copyOf(employees.values());
     }
 
@@ -34,13 +33,13 @@ public class EmployeeService {
     }
 
     public Employee createEmployee(EmployeeRequest request) {
-        //added this to stop early if the request body is missing instead of trying to create an empty employee.
+        // added this to stop early if the request body is missing instead of trying to create an empty employee.
         if (request == null) {
             throw new IllegalArgumentException("Request body is required");
         }
         Instant hireDate = request.contractHireDate() == null ? Instant.now() : request.contractHireDate();
 
-        //to validate every input before building and saving the employee
+        // to validate every input before building and saving the employee
         validate(request, hireDate);
 
         EmployeeModel employee = new EmployeeModel();
@@ -59,7 +58,7 @@ public class EmployeeService {
         return employee;
     }
 
-    //to keep all input rules together so createEmployee can actually stay focused on constructing the object
+    // to keep all input rules together so createEmployee can actually stay focused on constructing the object
     private void validate(EmployeeRequest request, Instant hireDate) {
         requireText(request.firstName(), "firstName");
         requireText(request.lastName(), "lastName");
@@ -71,12 +70,12 @@ public class EmployeeService {
             throw new IllegalArgumentException("email must be valid");
         }
 
-        // Salary cant be negative
+        // Salary can't be negative
         if (request.salary() == null || request.salary() < 0) {
             throw new IllegalArgumentException("salary must be zero or greater");
         }
 
-        // age in the range chosen for this
+        // keeps age within the range chosen for this exercise
         if (request.age() == null || request.age() < 16 || request.age() > 120) {
             throw new IllegalArgumentException("age must be between 16 and 120");
         }

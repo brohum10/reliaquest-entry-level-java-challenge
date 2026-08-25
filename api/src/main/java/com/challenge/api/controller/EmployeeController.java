@@ -23,7 +23,7 @@ public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-    //will get the service that the controler will use for each employee request
+    // will get the service that the controller will use for each employee request
     public EmployeeController(EmployeeService employeeService) {
         this.employeeService = employeeService;
     }
@@ -44,7 +44,7 @@ public class EmployeeController {
      * @return Requested Employee if exists
      */
     @GetMapping("/{uuid}")
-    public Employee getEmployeeByUuid(@PathVariable UUID uuid){
+    public Employee getEmployeeByUuid(@PathVariable UUID uuid) {
         // looks for the UUID and sends a 404 response if no employee matches it
         return employeeService
                 .getEmployeeByUuid(uuid)
@@ -59,12 +59,12 @@ public class EmployeeController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Employee createEmployee(@RequestBody EmployeeRequest requestBody) {
-        try{
+        try {
             // asks the service to validate and create the new employee
             return employeeService.createEmployee(requestBody);
-            
+
         } catch (IllegalArgumentException exception) {
-            //invalid input is sent back as a 400 error instead of a server error
+            // invalid input is sent back as a 400 error instead of a server error
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
         }
     }
