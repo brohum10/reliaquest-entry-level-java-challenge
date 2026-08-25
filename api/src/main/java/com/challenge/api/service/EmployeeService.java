@@ -12,19 +12,19 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 
-// this owns employee creation and lookup rules
-// storage is intentionally in memory because persistence is outside the scope of the challenge
+// Owns employee creation, validation, and lookup rules.
+// Storage is intentionally in memory because persistence is outside the scope of the challenge.
 
 @Service
 public class EmployeeService {
 
-    // small boundary check.
+    // This is a small boundary check, not an attempt to reproduce the complete email specification.
     private static final Pattern EMAIL_PATTERN = Pattern.compile("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$");
 
     private final Map<UUID, Employee> employees = new ConcurrentHashMap<>();
 
     public List<Employee> getAllEmployees() {
-        // returns a snapshot so callers cannot modify the stored employee list
+        // Return a snapshot so callers cannot modify the stored employee list.
         return List.copyOf(employees.values());
     }
 
@@ -33,13 +33,13 @@ public class EmployeeService {
     }
 
     public Employee createEmployee(EmployeeRequest request) {
-        // added this to stop early if the request body is missing instead of trying to create an empty employee.
+        // Stop early if the request body is missing instead of creating an empty employee.
         if (request == null) {
             throw new IllegalArgumentException("Request body is required");
         }
         Instant hireDate = request.contractHireDate() == null ? Instant.now() : request.contractHireDate();
 
-        // to validate every input before building and saving the employee
+        // Validate every input before building and saving the employee.
         validate(request, hireDate);
 
         EmployeeModel employee = new EmployeeModel();
@@ -58,28 +58,29 @@ public class EmployeeService {
         return employee;
     }
 
-    // to keep all input rules together so createEmployee can actually stay focused on constructing the object
+    // Keep input rules together so createEmployee stays focused on constructing the object.
     private void validate(EmployeeRequest request, Instant hireDate) {
         requireText(request.firstName(), "firstName");
         requireText(request.lastName(), "lastName");
         requireText(request.jobTitle(), "jobTitle");
         requireText(request.email(), "email");
 
-        // will make sure the email will have the normal format
+        // Require a basic name@domain format.
         if (!EMAIL_PATTERN.matcher(request.email().trim()).matches()) {
             throw new IllegalArgumentException("email must be valid");
         }
 
-        // Salary can't be negative
+        // Salary is required and cannot be negative.
         if (request.salary() == null || request.salary() < 0) {
             throw new IllegalArgumentException("salary must be zero or greater");
         }
 
-        // keeps age within the range chosen for this exercise
+        // Keep age within the range chosen for this exercise.
         if (request.age() == null || request.age() < 16 || request.age() > 120) {
             throw new IllegalArgumentException("age must be between 16 and 120");
         }
 
+        // If an end date exists, it cannot come before the hire date.
         if (request.contractTerminationDate() != null
                 && request.contractTerminationDate().isBefore(hireDate)) {
             throw new IllegalArgumentException("contractTerminationDate cannot precede contractHireDate");

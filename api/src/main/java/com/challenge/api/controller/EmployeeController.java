@@ -15,15 +15,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-// this controller handles the employee routes and the status codes sent back to the user
-// the employee service handles the main rules so this file can stay easier to follow
+// Handles employee routes and the HTTP status codes returned to the caller.
+// The service owns the employee rules so this controller stays focused on web concerns.
 @RestController
 @RequestMapping("/api/v1/employee")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
 
-    // will get the service that the controller will use for each employee request
+    // Spring provides the service used for each employee request.
     public EmployeeController(EmployeeService employeeService) {
         this.employeeService = employeeService;
     }
@@ -34,7 +34,7 @@ public class EmployeeController {
      */
     @GetMapping
     public List<Employee> getAllEmployees() {
-        // made to return every employee that is currently stored
+        // Return every employee that is currently stored.
         return employeeService.getAllEmployees();
     }
 
@@ -45,7 +45,7 @@ public class EmployeeController {
      */
     @GetMapping("/{uuid}")
     public Employee getEmployeeByUuid(@PathVariable UUID uuid) {
-        // looks for the UUID and sends a 404 response if no employee matches it
+        // Look up the UUID and return 404 if no employee matches it.
         return employeeService
                 .getEmployeeByUuid(uuid)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found"));
@@ -60,11 +60,10 @@ public class EmployeeController {
     @ResponseStatus(HttpStatus.CREATED)
     public Employee createEmployee(@RequestBody EmployeeRequest requestBody) {
         try {
-            // asks the service to validate and create the new employee
+            // Ask the service to validate and create the new employee.
             return employeeService.createEmployee(requestBody);
-
         } catch (IllegalArgumentException exception) {
-            // invalid input is sent back as a 400 error instead of a server error
+            // Report invalid input as a 400 client error instead of a server error.
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, exception.getMessage(), exception);
         }
     }
